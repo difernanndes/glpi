@@ -108,7 +108,7 @@ class NotificationEvent extends CommonDBTM {
    **/
    static function raiseEvent($event, $item, $options = [], $label = '') {
       global $CFG_GLPI;
-      toolbox::logdebug("raiseevent", $event, " item", $item, " opt", $options, " label ", $label);
+
       //If notifications are enabled in GLPI's configuration
       if ($CFG_GLPI["use_notifications"] && Notification_NotificationTemplate::hasActiveMode()) {
          $notificationtarget = NotificationTarget::getInstance($item, $event, $options);
@@ -162,7 +162,6 @@ class NotificationEvent extends CommonDBTM {
                   $template,
                   $notify_me
                );
-               toolbox::logdebug("options", $options);
             } else {
                Toolbox::logWarning('Missing event class for mode ' . $data['mode'] . ' (' . $eventclass . ')');
                $label = Notification_NotificationTemplate::getMode($data['mode'])['label'];
