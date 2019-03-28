@@ -108,7 +108,7 @@ class NotificationEvent extends CommonDBTM {
    **/
    static function raiseEvent($event, $item, $options = [], $label = '') {
       global $CFG_GLPI;
-
+      toolbox::logdebug("raiseevent", $event, " item", $item, " opt", $options, " label ", $label);
       //If notifications are enabled in GLPI's configuration
       if ($CFG_GLPI["use_notifications"] && Notification_NotificationTemplate::hasActiveMode()) {
          $notificationtarget = NotificationTarget::getInstance($item, $event, $options);
@@ -126,6 +126,7 @@ class NotificationEvent extends CommonDBTM {
             $notificationtarget->getEntity()
          );
 
+         $processed = []; // targets list
          foreach ($notifications as $data) {
             $notificationtarget->clearAddressesList();
             $notificationtarget->setMode($data['mode']);
@@ -145,6 +146,10 @@ class NotificationEvent extends CommonDBTM {
             }
 
             $options['mode'] = $data['mode'];
+            if (!isset($processed[$data['mode']])) { // targets list per mode to avoid spam
+               $processed[$data['mode']] = [];
+            }
+            $options['processed'] = &$processed[$data['mode']];
             $eventclass = Notification_NotificationTemplate::getModeClass($data['mode'], 'event');
             if (class_exists($eventclass)) {
                $eventclass::raise(
@@ -157,6 +162,7 @@ class NotificationEvent extends CommonDBTM {
                   $template,
                   $notify_me
                );
+               toolbox::logdebug("options", $options);
             } else {
                Toolbox::logWarning('Missing event class for mode ' . $data['mode'] . ' (' . $eventclass . ')');
                $label = Notification_NotificationTemplate::getMode($data['mode'])['label'];
